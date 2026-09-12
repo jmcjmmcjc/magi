@@ -369,10 +369,6 @@ grade:
 	$(V)$(MAKE) $(MAKEOPTS) clean
 	$(V)$(SH) tools/grade.sh
 
-grade-lab2:
-	$(V)$(MAKE) $(MAKEOPTS) clean
-	$(V)$(SH) tools/grade-lab2.sh
-
 touch:
 	$(V)$(foreach f,$(TOUCH_FILES),$(TOUCH) $(f))
 
