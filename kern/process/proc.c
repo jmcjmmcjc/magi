@@ -90,39 +90,6 @@ static struct proc_struct *
 alloc_proc(void) {
     struct proc_struct *proc = kmalloc(sizeof(struct proc_struct));
     if (proc != NULL) {
-    //LAB4:EXERCISE1 YOUR CODE
-    /*
-     * below fields in proc_struct need to be initialized
-     *       enum proc_state state;                      // Process state
-     *       int pid;                                    // Process ID
-     *       int runs;                                   // the running times of Proces
-     *       uintptr_t kstack;                           // Process kernel stack
-     *       volatile bool need_resched;                 // bool value: need to be rescheduled to release CPU?
-     *       struct proc_struct *parent;                 // the parent process
-     *       struct mm_struct *mm;                       // Process's memory management field
-     *       struct context context;                     // Switch here to run process
-     *       struct trapframe *tf;                       // Trap frame for current interrupt
-     *       uintptr_t cr3;                              // CR3 register: the base addr of Page Directroy Table(PDT)
-     *       uint32_t flags;                             // Process flag
-     *       char name[PROC_NAME_LEN + 1];               // Process name
-     */
-     //LAB5 YOUR CODE : (update LAB4 steps)
-    /*
-     * below fields(add in LAB5) in proc_struct need to be initialized	
-     *       uint32_t wait_state;                        // waiting state
-     *       struct proc_struct *cptr, *yptr, *optr;     // relations between processes
-	 */
-     //LAB6 YOUR CODE : (update LAB5 steps)
-    /*
-     * below fields(add in LAB6) in proc_struct need to be initialized
-     *     struct run_queue *rq;                       // running queue contains Process
-     *     list_entry_t run_link;                      // the entry linked in run queue
-     *     int time_slice;                             // time slice for occupying the CPU
-     *     skew_heap_entry_t lab6_run_pool;            // FOR LAB6 ONLY: the entry in the run pool
-     *     uint32_t lab6_stride;                       // FOR LAB6 ONLY: the current stride of the process
-     *     uint32_t lab6_priority;                     // FOR LAB6 ONLY: the priority of process, set by lab6_set_priority(uint32_t)
-     */
-    //LAB8:EXERCISE2 YOUR CODE HINT:need add some code to init fs in proc_struct, ...
         proc->state = PROC_UNINIT;
         proc->pid = -1;
         proc->runs = 0;
@@ -392,7 +359,6 @@ copy_thread(struct proc_struct *proc, uintptr_t esp, struct trapframe *tf) {
     proc->context.esp = (uintptr_t)(proc->tf);
 }
 
-//copy_files&put_files function used by do_fork in LAB8
 //copy the files_struct from current to proc
 static int
 copy_files(uint32_t clone_flags, struct proc_struct *proc) {
@@ -448,41 +414,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
         goto fork_out;
     }
     ret = -E_NO_MEM;
-    //LAB4:EXERCISE2 YOUR CODE
-    //LAB8:EXERCISE2 YOUR CODE  HINT:how to copy the fs in parent's proc_struct?
-    /*
-     * Some Useful MACROs, Functions and DEFINEs, you can use them in below implementation.
-     * MACROs or Functions:
-     *   alloc_proc:   create a proc struct and init fields (lab4:exercise1)
-     *   setup_kstack: alloc pages with size KSTACKPAGE as process kernel stack
-     *   copy_mm:      process "proc" duplicate OR share process "current"'s mm according clone_flags
-     *                 if clone_flags & CLONE_VM, then "share" ; else "duplicate"
-     *   copy_thread:  setup the trapframe on the  process's kernel stack top and
-     *                 setup the kernel entry point and stack of process
-     *   hash_proc:    add proc into proc hash_list
-     *   get_pid:      alloc a unique pid for process
-     *   wakeup_proc:  set proc->state = PROC_RUNNABLE
-     * VARIABLES:
-     *   proc_list:    the process set's list
-     *   nr_process:   the number of process set
-     */
 
-    //    1. call alloc_proc to allocate a proc_struct
-    //    2. call setup_kstack to allocate a kernel stack for child process
-    //    3. call copy_mm to dup OR share mm according clone_flag
-    //    4. call copy_thread to setup tf & context in proc_struct
-    //    5. insert proc_struct into hash_list && proc_list
-    //    6. call wakeup_proc to make the new child process RUNNABLE
-    //    7. set ret vaule using child proc's pid
-
-	//LAB5 YOUR CODE : (update LAB4 steps)
-   /* Some Functions
-    *    set_links:  set the relation links of process.  ALSO SEE: remove_links:  lean the relation links of process 
-    *    -------------------
-	*    update step 1: set child proc's parent to current process, make sure current process's wait_state is 0
-	*    update step 5: insert proc_struct into hash_list && proc_list, set the relation links of process
-    */
-	
     if ((proc = alloc_proc()) == NULL) {
         goto fork_out;
     }
@@ -517,7 +449,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
 fork_out:
     return ret;
 
-bad_fork_cleanup_fs:  //for LAB8
+bad_fork_cleanup_fs:
     put_files(proc);
 bad_fork_cleanup_kstack:
     put_kstack(proc);
@@ -549,7 +481,7 @@ do_exit(int error_code) {
         }
         current->mm = NULL;
     }
-    put_files(current); //for LAB8
+    put_files(current);
     current->state = PROC_ZOMBIE;
     current->exit_code = error_code;
     
@@ -584,7 +516,6 @@ do_exit(int error_code) {
     panic("do_exit will not return!! %d.\n", current->pid);
 }
 
-//load_icode_read is used by load_icode in LAB8
 static int
 load_icode_read(int fd, void *buf, size_t len, off_t offset) {
     int ret;
@@ -601,30 +532,6 @@ load_icode_read(int fd, void *buf, size_t len, off_t offset) {
   
 static int
 load_icode(int fd, int argc, char **kargv) {
-    /* LAB8:EXERCISE2 YOUR CODE  HINT:how to load the file with handler fd  in to process's memory? how to setup argc/argv?
-     * MACROs or Functions:
-     *  mm_create        - create a mm
-     *  setup_pgdir      - setup pgdir in mm
-     *  load_icode_read  - read raw data content of program file
-     *  mm_map           - build new vma
-     *  pgdir_alloc_page - allocate new memory for  TEXT/DATA/BSS/stack parts
-     *  lcr3             - update Page Directory Addr Register -- CR3
-     */
-	/* (1) create a new mm for current process
-     * (2) create a new PDT, and mm->pgdir= kernel virtual addr of PDT
-     * (3) copy TEXT/DATA/BSS parts in binary to memory space of process
-     *    (3.1) read raw data content in file and resolve elfhdr
-     *    (3.2) read raw data content in file and resolve proghdr based on info in elfhdr
-     *    (3.3) call mm_map to build vma related to TEXT/DATA
-     *    (3.4) callpgdir_alloc_page to allocate page for TEXT/DATA, read contents in file
-     *          and copy them into the new allocated pages
-     *    (3.5) callpgdir_alloc_page to allocate pages for BSS, memset zero in these pages
-     * (4) call mm_map to setup user stack, and put parameters into user stack
-     * (5) setup current process's mm, cr3, reset pgidr (using lcr3 MARCO)
-     * (6) setup uargc and uargv in user stacks
-     * (7) setup trapframe for user environment
-     * (8) if up steps failed, you should cleanup the env.
-     */
     assert(argc >= 0 && argc <= EXEC_MAX_ARG_NUM);
 
     if (current->mm != NULL) {
@@ -780,7 +687,6 @@ bad_mm:
     goto out;
 }
 
-// this function isn't very correct in LAB8
 static void
 put_kargv(int argc, char **kargv) {
     while (argc > 0) {
@@ -1096,7 +1002,6 @@ cpu_idle(void) {
     }
 }
 
-//FOR LAB6, set the process's priority (bigger value will get more CPU time) 
 void
 lab6_set_priority(uint32_t priority)
 {

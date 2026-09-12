@@ -300,7 +300,7 @@ IGNORE_ALLDEPS	= clean \
 				  build-.+ \
 				  sh-.+ \
 				  script-.+ \
-				  handin
+
 
 ifeq ($(call match,$(MAKECMDGOALS),$(IGNORE_ALLDEPS)),0)
 -include $(ALLDEPS)
@@ -360,7 +360,6 @@ script-%: touch
 
 GRADE_GDB_IN	:= .gdb.in
 GRADE_QEMU_OUT	:= .qemu.out
-HANDIN			:= proj$(PROJ)-handin.tar.gz
 
 TOUCH_FILES		:= kern/process/proc.c
 
@@ -370,30 +369,17 @@ grade:
 	$(V)$(MAKE) $(MAKEOPTS) clean
 	$(V)$(SH) tools/grade.sh
 
+grade-lab2:
+	$(V)$(MAKE) $(MAKEOPTS) clean
+	$(V)$(SH) tools/grade-lab2.sh
+
 touch:
 	$(V)$(foreach f,$(TOUCH_FILES),$(TOUCH) $(f))
 
 print-%:
 	@echo $($(shell echo $(patsubst print-%,%,$@) | $(TR) [a-z] [A-Z]))
 
-.PHONY: clean dist-clean handin packall tags
+.PHONY: clean
 clean:
 	$(V)$(RM) $(GRADE_GDB_IN) $(GRADE_QEMU_OUT)  $(SFSBINS) cscope* tags
 	$(V)$(RM) -r $(OBJDIR) $(BINDIR) $(SFSROOT)
-
-dist-clean: clean
-	-$(RM) $(HANDIN)
-
-handin: packall
-	@echo Please visit http://learn.tsinghua.edu.cn and upload $(HANDIN). Thanks!
-
-packall: clean
-	@$(RM) -f $(HANDIN)
-	@tar -czf $(HANDIN) `find . -type f -o -type d | grep -v '^\.*$$' | grep -vF '$(HANDIN)'`
-
-tags:
-	@echo TAGS ALL
-	$(V)rm -f cscope.files cscope.in.out cscope.out cscope.po.out tags
-	$(V)find . -type f -name "*.[chS]" >cscope.files
-	$(V)cscope -bq 
-	$(V)ctags -L cscope.files

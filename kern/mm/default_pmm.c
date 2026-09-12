@@ -12,9 +12,6 @@
  *  Please refer to Page 196~198, Section 8.2 of Yan Wei Min's Chinese book
  * "Data Structure -- C programming language".
 */
-// LAB2 EXERCISE 1: YOUR CODE
-// you should rewrite functions: `default_init`, `default_init_memmap`,
-// `default_alloc_pages`, `default_free_pages`.
 /*
  * Details of FFMA
  * (1) Preparation:
@@ -236,8 +233,6 @@ basic_check(void) {
     free_page(p2);
 }
 
-// LAB2: below code is used to check the first fit allocation algorithm (your EXERCISE 1) 
-// NOTICE: You SHOULD NOT CHANGE basic_check, default_check functions!
 static void
 default_check(void) {
     int count = 0, total = 0;
